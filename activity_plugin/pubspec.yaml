@@ -1,0 +1,29 @@
+name: activity_plugin
+description: A Flutter plugin for getting data from Google Fit or Apple Health.
+version: 0.0.1
+homepage: https://obss-internal.visualstudio.com/StairsClimbChallenge/_git/ActivityPlugin
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.20.0 <2.0.0"
+
+dependencies:
+  activity_plugin_platform_interface:
+    git:
+      url: https://github.com/ObjectivityLtd/activity_plugin.git
+      path: activity_plugin_platform_interface
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: uk.co.objectivity.activity_plugin
+        pluginClass: ActivityPlugin
+      ios:
+        pluginClass: ActivityPlugin

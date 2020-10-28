@@ -1,0 +1,17 @@
+name: activity_plugin_platform_interface
+description: A common platform interface for the activity_plugin.
+version: 0.0.1
+homepage: https://obss-internal.visualstudio.com/StairsClimbChallenge/_git/ActivityPlugin
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0 <2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  plugin_platform_interface: ^1.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
