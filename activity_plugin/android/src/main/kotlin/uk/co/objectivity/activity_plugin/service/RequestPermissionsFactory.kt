@@ -1,24 +1,20 @@
-// Copyright (c) 2020 Objectivity. All rights reserved.
-// Use of this source code is governed by The MIT License (MIT) that can be
-// found in the LICENSE file.
-
 package uk.co.objectivity.activity_plugin.service
 
 import android.app.Activity
-import android.content.Intent
+import android.content.pm.PackageManager
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry
 import kotlin.random.Random
 
-class ActivityFactory {
+class RequestPermissionsFactory {
     private lateinit var activityPluginBinding: ActivityPluginBinding
 
     private val resultListeners: MutableList<ResultListener> = mutableListOf()
 
-    val activity: Activity
+    private val activity: Activity
         get() = activityPluginBinding.activity
 
-    fun create(activityRequest: (requestCode: Int, activity: Activity) -> Unit, onSuccess: () -> Unit, onCancel: () -> Unit) {
+    fun create(requestPermissions: (requestCode: Int, activity: Activity) -> Unit, onSuccess: () -> Unit, onCancel: () -> Unit) {
         val requestCode = Random.nextInt(0, Int.MAX_VALUE)
         val resultListener = ResultListener(
                 requestCode,
@@ -28,16 +24,16 @@ class ActivityFactory {
         )
         addResultListener(resultListener)
 
-        activityRequest(requestCode, activity)
+        requestPermissions(requestCode, activity)
     }
 
     private fun removeResultListener(resultListener: ResultListener) {
-        activityPluginBinding.removeActivityResultListener(resultListener)
+        activityPluginBinding.removeRequestPermissionsResultListener(resultListener)
         resultListeners.remove(resultListener)
     }
 
     private fun addResultListener(resultListener: ResultListener) {
-        activityPluginBinding.addActivityResultListener(resultListener)
+        activityPluginBinding.addRequestPermissionsResultListener(resultListener)
         resultListeners.add(resultListener)
     }
 
@@ -46,7 +42,7 @@ class ActivityFactory {
     }
 
     fun unbind() {
-        resultListeners.forEach { activityPluginBinding.removeActivityResultListener(it) }
+        resultListeners.forEach { activityPluginBinding.removeRequestPermissionsResultListener(it) }
         resultListeners.clear()
     }
 
@@ -54,10 +50,10 @@ class ActivityFactory {
                                  private val onSuccess: () -> Unit,
                                  private val onCancel: () -> Unit,
                                  private val onDone: (ResultListener) -> Unit
-    ) : PluginRegistry.ActivityResultListener {
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+    ) : PluginRegistry.RequestPermissionsResultListener {
+        override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?): Boolean {
             if (this.requestCode == requestCode) {
-                if (resultCode == Activity.RESULT_OK) {
+                if (grantResults != null && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                     onSuccess()
                 } else {
                     onCancel()

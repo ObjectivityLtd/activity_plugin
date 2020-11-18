@@ -16,7 +16,7 @@ class ActivityPlugin : FlutterPlugin, ActivityAware {
     private lateinit var dependencyContainer: DependencyContainer
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        dependencyContainer = DependencyContainer.getInstance(flutterPluginBinding.applicationContext)
+        dependencyContainer = DependencyContainer.getInstance()
 
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, Config.Channel.METHODS_CHANNEL_NAME)
         channel.setMethodCallHandler(dependencyContainer.methodCallHandler)
@@ -28,17 +28,21 @@ class ActivityPlugin : FlutterPlugin, ActivityAware {
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         dependencyContainer.activityFactory.bind(binding)
+        dependencyContainer.requestPermissionsFactory.bind(binding)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
         dependencyContainer.activityFactory.unbind()
+        dependencyContainer.requestPermissionsFactory.unbind()
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         dependencyContainer.activityFactory.bind(binding)
+        dependencyContainer.requestPermissionsFactory.bind(binding)
     }
 
     override fun onDetachedFromActivity() {
         dependencyContainer.activityFactory.unbind()
+        dependencyContainer.requestPermissionsFactory.unbind()
     }
 }

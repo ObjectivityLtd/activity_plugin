@@ -17,10 +17,10 @@ import com.google.android.gms.fitness.FitnessOptions
 import com.google.android.gms.fitness.data.DataPoint
 import com.google.android.gms.fitness.data.DataType
 import com.google.android.gms.fitness.request.DataReadRequest
-import uk.co.objectivity.activity_plugin.service.RequestAuthorizationStatus.*
 import java.util.concurrent.TimeUnit
 
-class GoogleFitService(private val activityFactory: ActivityFactory) {
+class GoogleFitService(private val activityFactory: ActivityFactory,
+                       private val requestPermissionsFactory: RequestPermissionsFactory) {
     private val activity: Activity
         get() = activityFactory.activity
 
@@ -47,7 +47,7 @@ class GoogleFitService(private val activityFactory: ActivityFactory) {
 
     fun requestAuthorization(fitnessOptions: FitnessOptions, onSuccess: () -> Unit, onCancel: () -> Unit) {
         RequestAuthorization(fitnessOptions, onSuccess, onCancel)
-                .invoke(activityFactory, getAccount())
+                .invoke(activityFactory, requestPermissionsFactory, getAccount())
     }
 
     fun readData(start: Long,
@@ -77,28 +77,7 @@ private class RequestAuthorization(
         private val onSuccess: () -> Unit,
         private val onCancel: () -> Unit
 ) {
-    private var activityRecognition = PENDING
-    private var requestPermissions = PENDING
-    private var canceled = false
-
-    fun invoke(activityFactory: ActivityFactory, account: GoogleSignInAccount?) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            activityFactory.create({ requestCode, activity ->
-                ActivityCompat.requestPermissions(activity,
-                        arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
-                        requestCode)
-            }, {
-                activityRecognition = SUCCEEDED
-                trySuccess()
-            }, {
-                activityRecognition = CANCELED
-                cancel()
-            })
-        } else {
-            activityRecognition = SUCCEEDED
-            trySuccess()
-        }
-
+    fun invoke(activityFactory: ActivityFactory, requestPermissionsFactory: RequestPermissionsFactory, account: GoogleSignInAccount?) {
         activityFactory.create({ requestCode, activity ->
             GoogleSignIn.requestPermissions(
                     activity,
@@ -107,31 +86,25 @@ private class RequestAuthorization(
                     fitnessOptions
             )
         }, {
-            requestPermissions = SUCCEEDED
-            trySuccess()
+            requestActivityRecognition(requestPermissionsFactory)
         }, {
-            requestPermissions = CANCELED
-            cancel()
+            onCancel()
         })
     }
 
-    private fun cancel() {
-        if (!canceled) {
-            canceled = true
-            onCancel()
+    private fun requestActivityRecognition(requestPermissionsFactory: RequestPermissionsFactory) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            requestPermissionsFactory.create({ requestCode, activity ->
+                ActivityCompat.requestPermissions(activity,
+                        arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                        requestCode)
+            }, {
+                onSuccess()
+            }, {
+                onCancel()
+            })
+        } else {
+            onSuccess()
         }
     }
-
-    private fun trySuccess() {
-        if (!canceled
-                && activityRecognition == SUCCEEDED
-                && requestPermissions == SUCCEEDED
-        ) onSuccess()
-    }
-}
-
-private enum class RequestAuthorizationStatus {
-    PENDING,
-    SUCCEEDED,
-    CANCELED
 }

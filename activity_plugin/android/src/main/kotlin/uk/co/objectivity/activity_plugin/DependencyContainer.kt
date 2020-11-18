@@ -11,19 +11,21 @@ import uk.co.objectivity.activity_plugin.connection.MethodHandlerFactory
 import uk.co.objectivity.activity_plugin.model.DataType
 import uk.co.objectivity.activity_plugin.service.ActivityFactory
 import uk.co.objectivity.activity_plugin.service.GoogleFitService
+import uk.co.objectivity.activity_plugin.service.RequestPermissionsFactory
 import uk.co.objectivity.activity_plugin.model.Unit as ModelUnit
 
-class DependencyContainer private constructor(context: Context) {
+class DependencyContainer private constructor() {
     val methodCallHandler: MethodCallHandler
 
     val activityFactory = ActivityFactory()
+    val requestPermissionsFactory = RequestPermissionsFactory()
 
     init {
         val moshi = Moshi.Builder()
                 .add(DataType.Adapter())
                 .add(ModelUnit.Adapter())
                 .build()
-        val googleFitService = GoogleFitService(activityFactory)
+        val googleFitService = GoogleFitService(activityFactory, requestPermissionsFactory)
         val methodHandFactory = MethodHandlerFactory(googleFitService, moshi)
 
         methodCallHandler = MethodCallHandler(methodHandFactory)
@@ -33,8 +35,8 @@ class DependencyContainer private constructor(context: Context) {
         @Volatile
         private var INSTANCE: DependencyContainer? = null
 
-        fun getInstance(context: Context) = INSTANCE ?: synchronized(this) {
-            INSTANCE ?: DependencyContainer(context).also { INSTANCE = it }
+        fun getInstance() = INSTANCE ?: synchronized(this) {
+            INSTANCE ?: DependencyContainer().also { INSTANCE = it }
         }
     }
 }
