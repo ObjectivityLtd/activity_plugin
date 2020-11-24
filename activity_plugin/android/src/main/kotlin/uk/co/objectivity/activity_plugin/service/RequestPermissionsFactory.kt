@@ -19,17 +19,11 @@ class RequestPermissionsFactory {
         val resultListener = ResultListener(
                 requestCode,
                 onSuccess,
-                onCancel,
-                this::removeResultListener
+                onCancel
         )
         addResultListener(resultListener)
 
         requestPermissions(requestCode, activity)
-    }
-
-    private fun removeResultListener(resultListener: ResultListener) {
-        activityPluginBinding.removeRequestPermissionsResultListener(resultListener)
-        resultListeners.remove(resultListener)
     }
 
     private fun addResultListener(resultListener: ResultListener) {
@@ -48,8 +42,7 @@ class RequestPermissionsFactory {
 
     private class ResultListener(private val requestCode: Int,
                                  private val onSuccess: () -> Unit,
-                                 private val onCancel: () -> Unit,
-                                 private val onDone: (ResultListener) -> Unit
+                                 private val onCancel: () -> Unit
     ) : PluginRegistry.RequestPermissionsResultListener {
         override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?): Boolean {
             if (this.requestCode == requestCode) {
@@ -58,8 +51,6 @@ class RequestPermissionsFactory {
                 } else {
                     onCancel()
                 }
-
-                onDone(this)
                 return true
             }
 
