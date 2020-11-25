@@ -6,7 +6,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry
 import kotlin.random.Random
 
-class RequestPermissionsFactory {
+class RequestPermissionsFactory : BaseFactory() {
     private lateinit var activityPluginBinding: ActivityPluginBinding
 
     private val resultListeners: MutableList<ResultListener> = mutableListOf()
@@ -27,8 +27,10 @@ class RequestPermissionsFactory {
     }
 
     private fun addResultListener(resultListener: ResultListener) {
-        activityPluginBinding.addRequestPermissionsResultListener(resultListener)
-        resultListeners.add(resultListener)
+        synchronized {
+            activityPluginBinding.addRequestPermissionsResultListener(resultListener)
+            resultListeners.add(resultListener)
+        }
     }
 
     fun bind(binding: ActivityPluginBinding) {
@@ -53,7 +55,6 @@ class RequestPermissionsFactory {
                 }
                 return true
             }
-
             return false
         }
     }
