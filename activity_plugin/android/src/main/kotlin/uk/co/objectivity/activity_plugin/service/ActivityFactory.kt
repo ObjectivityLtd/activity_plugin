@@ -10,7 +10,7 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.PluginRegistry
 import kotlin.random.Random
 
-class ActivityFactory {
+class ActivityFactory : BaseFactory() {
     private lateinit var activityPluginBinding: ActivityPluginBinding
 
     private val resultListeners: MutableList<ResultListener> = mutableListOf()
@@ -32,13 +32,17 @@ class ActivityFactory {
     }
 
     private fun removeResultListener(resultListener: ResultListener) {
-        activityPluginBinding.removeActivityResultListener(resultListener)
-        resultListeners.remove(resultListener)
+        synchronized {
+            activityPluginBinding.removeActivityResultListener(resultListener)
+            resultListeners.remove(resultListener)
+        }
     }
 
     private fun addResultListener(resultListener: ResultListener) {
-        activityPluginBinding.addActivityResultListener(resultListener)
-        resultListeners.add(resultListener)
+        synchronized {
+            activityPluginBinding.addActivityResultListener(resultListener)
+            resultListeners.add(resultListener)
+        }
     }
 
     fun bind(binding: ActivityPluginBinding) {
